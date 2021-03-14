@@ -23,32 +23,31 @@ def getLatestDownloadedPDF():
 def getEdhrPDF(instrumentSerialNumber):
     browser = visit(edhrUrl)
 
-    delay = 3
+    delay = 5
 
     # Enter serial number into search box
     searchBox = browser.find_element_by_id('ctl32_ctl04_ctl03_txtValue')
-    browser.implicitly_wait(delay)
     searchBox.send_keys(instrumentSerialNumber)
 
-    browser.implicitly_wait(delay)
+    time.sleep(3)
 
     # # Click on view report button
     submitButton = browser.find_element_by_id('ctl32_ctl04_ctl00')
     submitButton.click()
 
-    browser.implicitly_wait(delay)
+    time.sleep(3)
 
     # # Find drop down export menu
     menu = browser.find_element_by_id('ctl32_ctl05_ctl04_ctl00_Menu')
     browser.execute_script("arguments[0].style.visibility = 'visible'; arguments[0].style.display = 'block'", menu)
-    browser.implicitly_wait(delay)
+    time.sleep(3)
 
     # # Click save eDHR report as PDF
     pdfButton = menu.find_element_by_xpath("//div//a[@title='PDF']")
     print(pdfButton.get_attribute('title'))
     pdfButton.click()
 
-    browser.implicitly_wait(delay)
+    time.sleep(3)
 
     browser.close()
 
