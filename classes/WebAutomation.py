@@ -16,7 +16,7 @@ class WebAutomation:
         self.edhrUrl = 'http://ussd-illuminareporting.illumina.com/Reports/Pages/Report.aspx?ItemPath=%2fCamstar+Reports%2fProduction%2feDHR+-+Instrument+-+Detail'
 
     def getLatestDownloadedExcel(self):
-        listOfFiles = glob.glob((path_to_download_folder + "/*.xlsx")) # * means all if need specific format then *.csv
+        listOfFiles = glob.glob((self.path_to_download_folder + "/*.xlsx")) # * means all if need specific format then *.csv
         latestFile = max(listOfFiles, key=os.path.getctime)
         
         print(latestFile)
@@ -24,9 +24,9 @@ class WebAutomation:
         return latestFile
 
     def getEdhrExcel(self, instrumentSerialNumber):
-        browser = visit(edhrUrl)
+        browser = self.visit(self.edhrUrl)
 
-        delay = delay
+        delay = 3
 
         # Enter serial number into search box
         searchBox = browser.find_element_by_id('ctl32_ctl04_ctl03_txtValue')
@@ -55,11 +55,11 @@ class WebAutomation:
 
         browser.close()
 
-        return  self.getLatestDownloadedPDF()
+        return  self.getLatestDownloadedExcel()
 
     def visit(self, url):
         print("[INFO] Visiting {}".format(url))
-        browser = webdriver.Chrome(executable_path=r'{}'.format(chromedriver))         
+        browser = webdriver.Chrome(executable_path=r'{}'.format(self.chromedriver))         
         browser.get(url)
         
         return browser

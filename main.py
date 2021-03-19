@@ -1,11 +1,13 @@
+import os
 from classes.WebAutomation import WebAutomation
 from classes.ExcelHandler import ExcelHandler
+from os import path
 
 def main():
-    wa = WebAutomation()
-    excel = wa.getEdhrExcel('A01420')
+    # wa = WebAutomation()
+    # excel = wa.getEdhrExcel('A01400')
 
     eh = ExcelHandler()
-    eh.processExcel(excel)
+    eh.processExcel(os.getcwd() + "\\eDHR - Instrument - Detail.xlsx")
 
 main()
