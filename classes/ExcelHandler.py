@@ -8,7 +8,8 @@ class ExcelHandler:
         self.edhrCheckExcelPath = os.getcwd() + "\\eDHR_check2.xlsx"
         # key = tool name; val = list of ILM #s
         self.tools = {}
-        self.incorrectILMTools = []
+        self.incorrectILMTools = {}
+        self.ilmDoesNotExist = {}
 
     def processExcel(self, excelPath):
         excel = win32com.client.Dispatch("Excel.Application")
@@ -45,25 +46,27 @@ class ExcelHandler:
         print("start of mes section is at row {}".format(edhrCurrentRow))
         endOfEdhr = False
 
+        taskName = "Record Tool Information"
+
         while not endOfEdhr:
             if edhrWs.Cells(edhrCurrentRow, 3).Value == None:
                 endOfEdhr = True
                 break
             
-            if edhrWs.Cells(edhrCurrentRow, 8).Value == "Record Tool Information-1":
+            if edhrWs.Cells(edhrCurrentRow, 8).Value[:len(taskName)] == taskName:
                 # Copy row from edhr to edhr check
                 for col in range(3, 37):
                 # print("Copying {}".format(ws.Cells(row, col).Value))
                     edhrCheckWs.Cells(edhrCheckCurrentRow, col).Value = edhrWs.Cells(edhrCurrentRow, col).Value
 
-                    self.checkToolRow(edhrWs, edhrCurrentRow)
-                edhrCheckCurrentRow += 1
             
                 # Add tool to dictionary
                 toolName = edhrWs.Cells(edhrCurrentRow, 13).Value[:-5] 
                 toolNum = edhrWs.Cells(edhrCurrentRow, 33).Value
             
-                # if toolName:
+                self.checkToolRow(edhrCheckWs, edhrCheckCurrentRow, toolName, toolNum)
+                edhrCheckCurrentRow += 1
+
                 if not toolName in self.tools:
                     self.tools[toolName] = []
 
@@ -72,23 +75,50 @@ class ExcelHandler:
 
             edhrCurrentRow += 1
 
-        for key in self.tools.keys():
-            string = key + ": {}".format(self.tools[key]) + "\n"
-            print(string)
-        # print(self.)
-
         edhrCheckWb.Save()
         edhrCheckWb.Close(True)
 
+        self.printDictionaries()
 
-    def checkToolRow(self, edhrWs, row):
-        status = edhrWs.Cells(row, 49).Value
+    def checkToolRow(self, edhrWs, row, toolName, toolNum):
+        status = edhrWs.Cells(row, 50).Value
+        
+        # if status:
+        #     print("status: " + status)
 
         if status == "Incorrect ILM#":
-            pass
+            if not toolName in self.incorrectILMTools:
+                    self.incorrectILMTools[toolName] = []
+
+            if toolNum != "N/A":
+                self.incorrectILMTools[toolName].append(toolNum)
+
         elif status == "ILM# not exist. Update Cal table if needed":
-            pass
+            if not toolName in self.ilmDoesNotExist:
+                    self.ilmDoesNotExist[toolName] = []
+
+            if toolNum != "N/A":
+                self.ilmDoesNotExist[toolName].append(toolNum)
 
     def getILMs(self):
         for row in range(5):
             pass
+
+    def printDictionaries(self):
+        for key in self.tools.keys():
+            string = key + ": {}".format(self.tools[key])
+            print(string)
+
+        print("\nIncorrect:")
+
+        for key in self.incorrectILMTools.keys():
+            string = key + ": {}".format(self.incorrectILMTools[key])
+            print(string)
+
+        print("\nDoes not exist:")
+
+        for key in self.ilmDoesNotExist.keys():
+            string = key + ": {}".format(self.ilmDoesNotExist[key])
+            print(string)
+
+        print("\n")
