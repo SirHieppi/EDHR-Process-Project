@@ -8,6 +8,6 @@ def main():
     # excel = wa.getEdhrExcel('A01400')
 
     eh = ExcelHandler()
-    eh.processExcel(os.getcwd() + "\\eDHR - Instrument - Detail.xlsx")
+    eh.processExcel(os.getcwd() + "\\eDHR_A1409.xlsx")
 
 main()
