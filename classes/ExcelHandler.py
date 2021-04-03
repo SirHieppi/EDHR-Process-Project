@@ -10,13 +10,14 @@ class ExcelHandler:
         self.tools = {}
         self.incorrectILMTools = {}
         self.ilmDoesNotExist = {}
+        self.reworks = {}
 
     def processExcel(self, excelPath):
         excel = win32com.client.Dispatch("Excel.Application")
         excel.Visible = False
         wb = excel.Workbooks.Open(r'{}'.format(excelPath))        
         
-        self.transferEDHR(wb, excel, excelPath)
+        self.transferToEDHR(wb, excel, excelPath)
 
         wb.Close(True)
         
@@ -34,7 +35,7 @@ class ExcelHandler:
 
         return row + 3
 
-    def transferEDHR(self, edhrWb, excel, excelPath):
+    def transferToEDHR(self, edhrWb, excel, excelPath):
         edhrWs = edhrWb.Worksheets["eDHR - Instrument - Detail"]
 
         edhrCheckWb = excel.Workbooks.Open(r'{}'.format(self.edhrCheckExcelPath))        
@@ -46,18 +47,22 @@ class ExcelHandler:
         print("start of mes section is at row {}".format(edhrCurrentRow))
         endOfEdhr = False
 
-        taskName = "Record Tool Information"
+        taskName = "XXXXX"
+        reworkID = 0
 
         while not endOfEdhr:
+            stepDescriptionCell = edhrWs.Cells(edhrCurrentRow, 5).Value
+            taskNameCell = edhrWs.Cells(edhrCurrentRow, 8).Value
+
             if edhrWs.Cells(edhrCurrentRow, 3).Value == None:
                 endOfEdhr = True
                 break
             
-            if edhrWs.Cells(edhrCurrentRow, 8).Value[:len(taskName)] == taskName:
-                # Copy row from edhr to edhr check
-                for col in range(3, 37):
-                # print("Copying {}".format(ws.Cells(row, col).Value))
-                    edhrCheckWs.Cells(edhrCheckCurrentRow, col).Value = edhrWs.Cells(edhrCurrentRow, col).Value
+            if taskNameCell[:len(taskName)] == taskName:
+                # Copy row from edhr to edhrcheck
+                edhrCheckWsRangeStr = "C" + str(edhrCheckCurrentRow) + ":AT" + str(edhrCheckCurrentRow)
+                edhrWsRangeStr = "C" + str(edhrCurrentRow) + ":AT" + str(edhrCurrentRow)
+                edhrCheckWs.Range(edhrCheckWsRangeStr).Value = edhrWs.Range(edhrWsRangeStr).Value
 
             
                 # Add tool to dictionary
@@ -72,6 +77,23 @@ class ExcelHandler:
 
                 if toolNum != "N/A":
                     self.tools[toolName].append(toolNum)
+
+            if stepDescriptionCell and "Rework" in stepDescriptionCell:
+                edhrCheckCurrentRow += 1
+
+                # Copy row from edhr to edhrcheck
+                edhrCheckWsRangeStr = "C" + str(edhrCheckCurrentRow) + ":AT" + str(edhrCheckCurrentRow)
+                edhrWsRangeStr = "C" + str(edhrCurrentRow) + ":AT" + str(edhrCurrentRow)
+                edhrCheckWs.Range(edhrCheckWsRangeStr).Value = edhrWs.Range(edhrWsRangeStr).Value
+
+                if not reworkID in self.reworks:
+                    self.reworks[reworkID] = []
+
+                if taskNameCell != "N/A" and not taskNameCell in self.reworks[reworkID]:
+                    self.reworks[reworkID].append(taskNameCell)
+
+                if edhrWs.Cells(edhrCurrentRow, 33).Value == "Exit":
+                    reworkID += 1
 
             edhrCurrentRow += 1
 
@@ -101,10 +123,19 @@ class ExcelHandler:
                 self.ilmDoesNotExist[toolName].append(toolNum)
 
     def getILMs(self):
-        for row in range(5):
-            pass
+        return self.tools, self.incorrectILMTools, self.ilmDoesNotExist
+
+    def getToolsWithoutILMs(self):
+        toolsWithoutILMs = []
+
+        for tool in self.tools.keys():
+            if not self.tools[tool]:
+                toolsWithoutILMs.append(tool)
+            
+        return toolsWithoutILMs
 
     def printDictionaries(self):
+
         for key in self.tools.keys():
             string = key + ": {}".format(self.tools[key])
             print(string)
@@ -120,5 +151,11 @@ class ExcelHandler:
         for key in self.ilmDoesNotExist.keys():
             string = key + ": {}".format(self.ilmDoesNotExist[key])
             print(string)
+
+        print("\nReworks:")
+
+        for key in self.reworks.keys():
+            string = str(key) + ": {}".format(self.reworks[key])
+            print("\t" + string + "\n")
 
         print("\n")
