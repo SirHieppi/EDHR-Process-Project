@@ -49,7 +49,7 @@ class InstrQualTable:
 
         self.qualificationTable = {}
 
-        SELF.combinedSteps = {}
+        self.combinedStepsInOrder = {}
 
     def getQualificationSteps(self, qualifications, operations=[]):
         steps = {}
@@ -66,6 +66,7 @@ class InstrQualTable:
                         for step in self.qualificationTable[q][op]:
                             if step not in steps[op]:
                                 steps[op].append(step)
+                    steps[op] = sorted(steps[op], key = lambda x: x[1])
 
         return steps
 
@@ -94,8 +95,9 @@ class InstrQualTable:
 
                 if operation not in self.qualificationTable[q]:
                     self.qualificationTable[q][operation] = []
-
-                self.qualificationTable[q][operation].append(task)
+                
+                if cell:
+                    self.qualificationTable[q][operation].append(tuple((task, row)))
 
         wb.Close(True)
         excel.Quit()
@@ -114,6 +116,6 @@ class InstrQualTable:
         for q in self.qualificationTable:
             print(q + ": ")
             for operation in self.qualificationTable[q]:
-                print("\tOP: " + operation)
-                print(self.qualificationTable[q][operation])
+                print("\tOP " + operation + ": " + str(self.qualificationTable[q][operation]))
+                # print(self.qualificationTable[q][operation])
                 print("")
