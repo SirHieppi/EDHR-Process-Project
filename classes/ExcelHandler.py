@@ -51,6 +51,7 @@ class ExcelHandler:
         reworkID = 0
 
         while not endOfEdhr:
+            step = edhrWs.Cells(edhrCurrentRow, 3).Value
             stepDescriptionCell = edhrWs.Cells(edhrCurrentRow, 5).Value
             taskNameCell = edhrWs.Cells(edhrCurrentRow, 8).Value
 
@@ -87,10 +88,13 @@ class ExcelHandler:
                 edhrCheckWs.Range(edhrCheckWsRangeStr).Value = edhrWs.Range(edhrWsRangeStr).Value
 
                 if not reworkID in self.reworks:
-                    self.reworks[reworkID] = []
+                    self.reworks[reworkID] = {}
 
-                if taskNameCell != "N/A" and not taskNameCell in self.reworks[reworkID]:
-                    self.reworks[reworkID].append(taskNameCell)
+
+                if taskNameCell != "N/A" and step != "NC/DEV/RW" and not taskNameCell in self.reworks[reworkID]:
+                    if step not in self.reworks[reworkID]:
+                        self.reworks[reworkID][step] = []
+                    self.reworks[reworkID][step].append(taskNameCell)
 
                 if edhrWs.Cells(edhrCurrentRow, 33).Value == "Exit":
                     reworkID += 1
@@ -134,6 +138,9 @@ class ExcelHandler:
             
         return toolsWithoutILMs
 
+    def getReworks(self):
+        return self.reworks
+
     def printDictionaries(self):
 
         for key in self.tools.keys():
@@ -155,7 +162,12 @@ class ExcelHandler:
         print("\nReworks:")
 
         for key in self.reworks.keys():
-            string = str(key) + ": {}".format(self.reworks[key])
-            print("\t" + string + "\n")
+            task = str(key) + ": {}".format(self.reworks[key])
+
+            for step in self.reworks[key].keys():
+                print("\t\t" + step)
+                print("\t\t\t" + str(self.reworks[key][step]) + "\n")
+
+            # print("\n")
 
         print("\n")
