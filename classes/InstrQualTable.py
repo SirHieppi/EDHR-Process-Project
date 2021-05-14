@@ -51,8 +51,10 @@ class InstrQualTable:
 
         self.combinedStepsInOrder = {}
 
-    def getQualificationSteps(self, qualifications, operations=[]):
+    def getQualificationSteps(self, qualifications, operations=['FUNC', 'FLUIDICS', 'ALIGN', 'THERM', 'FIT']):
         steps = {}
+
+        # print(operations)
 
         for operation in operations:
             if not operation:
@@ -96,13 +98,25 @@ class InstrQualTable:
                 if operation not in self.qualificationTable[q]:
                     self.qualificationTable[q][operation] = []
                 
+                if operation not in self.combinedStepsInOrder:
+                    self.combinedStepsInOrder[operation] = []
+                    
+                
                 if cell:
-                    self.qualificationTable[q][operation].append(tuple((task, row)))
+                    temp = tuple((task, row))
+                    self.qualificationTable[q][operation].append(temp)
+                    
+                    if temp not in self.combinedStepsInOrder[operation]:
+                        self.combinedStepsInOrder[operation].append(temp)
+
+
 
         wb.Close(True)
         excel.Quit()
 
-        self.printSelectedQualifications()
+        # self.printSelectedQualifications()
+        # print("\n\n\n")
+        self.printCombinedSteps()
 
     def removeQualification(self, qualifications):
         pass
@@ -119,3 +133,11 @@ class InstrQualTable:
                 print("\tOP " + operation + ": " + str(self.qualificationTable[q][operation]))
                 # print(self.qualificationTable[q][operation])
                 print("")
+
+    def printCombinedSteps(self):
+        print("Combined steps:")
+
+        for operation in self.combinedStepsInOrder:
+            steps = sorted(self.combinedStepsInOrder[operation], key = lambda x: x[1])
+            print("\tOP " + operation + ": " + str(steps))
+            print("")

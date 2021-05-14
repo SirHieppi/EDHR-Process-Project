@@ -1,6 +1,7 @@
 import win32com.client
 import win32api
 import os
+import json
 from os import path
 
 class ExcelHandler:
@@ -94,7 +95,8 @@ class ExcelHandler:
                 if taskNameCell != "N/A" and step != "NC/DEV/RW" and not taskNameCell in self.reworks[reworkID]:
                     if step not in self.reworks[reworkID]:
                         self.reworks[reworkID][step] = []
-                    self.reworks[reworkID][step].append(taskNameCell)
+                    if taskNameCell not in self.reworks[reworkID][step]:
+                        self.reworks[reworkID][step].append(taskNameCell)
 
                 if edhrWs.Cells(edhrCurrentRow, 33).Value == "Exit":
                     reworkID += 1
@@ -104,7 +106,8 @@ class ExcelHandler:
         edhrCheckWb.Save()
         edhrCheckWb.Close(True)
 
-        self.printDictionaries()
+        # self.printDictionaries()
+        # self.printRework()
 
     def checkToolRow(self, edhrWs, row, toolName, toolNum):
         status = edhrWs.Cells(row, 50).Value
@@ -171,3 +174,6 @@ class ExcelHandler:
             # print("\n")
 
         print("\n")
+
+    def printRework(self):
+        print(json.dumps(self.reworks, indent=4, separators=(". ", " = ")))
